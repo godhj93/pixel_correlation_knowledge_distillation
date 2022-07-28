@@ -26,7 +26,7 @@ def main():
     else:
         raise ValueError("Data must be cifar10 or cifar100")
 
-    model = DenseNet(arch='bdn-28',classes=classes).model(input_shape=(args.size,args.size,3))
+    model = BinaryDenseNet(kd=args.kd, arch='bdn-28',classes=classes).model(input_shape=(args.size,args.size,3))
     #model = MobileNetv1(classes=classes).model(input_shape=(args.size, args.size, 3))
     print(model.summary())
     trainer = Trainer(model, kd=args.kd, dataset=args.data, epochs=args.ep, batch_size=args.bs, size=args.size, name=args.name ,DEBUG=False)

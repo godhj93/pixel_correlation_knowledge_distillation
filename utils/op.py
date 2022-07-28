@@ -25,7 +25,7 @@ class Trainer:
         self.kd = kd
         if self.kd:
             from utils.networks.Baseline_DenseNet import DenseNet
-            self.teacher = DenseNet().model(input_shape=(size,size,3))
+            self.teacher = DenseNet(kd=self.kd).model(input_shape=(size,size,3))
             self.teacher.load_weights('./ckpt/2022-07-28/MODEL_22-44-11/') # Acc: 8665
             print(self.teacher.summary())
             print("Teacher has been loaded!")
