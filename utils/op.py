@@ -77,7 +77,7 @@ class Trainer:
             
             train_bar = self.progress_bar('train')
             for x,y in train_bar:
-                self.train_step(x,y, kd=self.kd)
+                self.train_step(x,y)
                 train_bar.set_description(f"Loss: {self.train_loss.result().numpy():.4f}, Acc: {self.train_accuracy.result().numpy():.4f}, Learning Rate: {self._optimizer._decayed_lr('float32').numpy()}")
             with self.train_summary_writer.as_default():
                 tf.summary.scalar('loss', self.train_loss.result(), step=e)
@@ -110,21 +110,21 @@ class Trainer:
         self.test_accuracy.reset_states()
 
     @tf.function
-    def train_step(self, kd, x,y):
+    def train_step(self, x,y):
               
         with tf.GradientTape() as tape:
                 
             y_hat = self._model(x, training=True)
             loss = self.CrossEntropy(y,y_hat)
 
-            if kd:
+            if self.kd:
                 loss_pc = 0
                 yt_hat = self.teacher.predict(x, training=False)
                 
                 for y_t, y_s in zip(yt_hat[:-1], y_hat[:-1]):
                     loss_pc += pixel_correlation_loss(y_t, y_s)
 
-        if kd:
+        if self.kd:
             lamb = 10
             loss_total = loss + lamb*loss_pc
             grads = tape.gradient(loss_total, self._model.trainable_variables)    
