@@ -71,9 +71,13 @@ class BinaryDenseNet(tf.keras.Model):
         y = self.dense_block4(y)
         y = self.bn1(y)
         y = self.global_pool(y)
-        y = self.linear(y)
+        logits = self.linear(y)
         
-        return y
+        if self.kd:
+            return aux_1, aux_2, aux_3, logits
+        
+        else:
+            return logits
 
     def model(self, input_shape):
         '''

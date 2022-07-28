@@ -3,9 +3,9 @@ import larq
 
 class DenseNet(tf.keras.Model):
 
-    def __init__(self, arch='bdn-28', use_binary_downsampling = False, classes= 10):
+    def __init__(self, kd, arch='bdn-28', use_binary_downsampling = False, classes= 10):
         super(DenseNet, self).__init__()
-
+        self.kd = kd
         growth_rate = 64
         if arch=='bdn-28':
             self.blocks = [6, 6, 6, 5]
@@ -71,9 +71,13 @@ class DenseNet(tf.keras.Model):
         y = self.dense_block4(y)
         y = self.bn1(y)
         y = self.global_pool(y)
-        y = self.linear(y)
+        logits = self.linear(y)
         
-        return y
+        if self.kd:
+            return aux_1, aux_2, aux_3, logits
+        
+        else:
+            return logits
 
     def model(self, input_shape):
         '''
