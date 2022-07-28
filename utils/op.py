@@ -135,15 +135,15 @@ class Trainer:
 
         self._optimizer.apply_gradients(zip(grads, self._model.trainable_variables))
         
-        self.train_accuracy.update_state(y, y_hat)
+        self.train_accuracy.update_state(y, y_hat[-1])
         self.train_loss.update_state(loss)
        
     @tf.function
     def test_step(self, x,y):
               
         y_hat = self._model(x, training=False)
-        loss = self.CrossEntropy(y,y_hat)
-        self.test_accuracy.update_state(y, y_hat)
+        loss = self.CrossEntropy(y,y_hat[-1])
+        self.test_accuracy.update_state(y, y_hat[-1])
         self.test_loss.update_state(loss)
 
     def save_model(self):
