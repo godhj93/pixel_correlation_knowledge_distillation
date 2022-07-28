@@ -123,10 +123,11 @@ class Trainer:
                 
                 for y_t, y_s in zip(yt_hat[:-1], y_hat[:-1]):
                     loss_pc += pixel_correlation_loss(y_t, y_s)
+                
+                lamb = 10
+                loss_total = loss + lamb*loss_pc
 
         if self.kd:
-            lamb = 10
-            loss_total = loss + lamb*loss_pc
             grads = tape.gradient(loss_total, self._model.trainable_variables)    
         
         else:
