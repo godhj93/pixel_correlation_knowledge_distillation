@@ -3,9 +3,9 @@ import larq
 
 class BinaryDenseNet(tf.keras.Model):
 
-    def __init__(self, arch='bdn-28', use_binary_downsampling = False, classes= 10):
+    def __init__(self,kd, arch='bdn-28', use_binary_downsampling = False, classes= 10):
         super(BinaryDenseNet, self).__init__()
-
+        self.kd = kd
         growth_rate = 64
         if arch=='bdn-28':
             self.blocks = [6, 6, 6, 5]
