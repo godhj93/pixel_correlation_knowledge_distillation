@@ -115,7 +115,7 @@ class Trainer:
         with tf.GradientTape() as tape:
                 
             y_hat = self._model(x, training=True)
-            loss = self.CrossEntropy(y,y_hat)
+            loss = self.CrossEntropy(y,y_hat[-1])
 
             if self.kd:
                 loss_pc = 0
