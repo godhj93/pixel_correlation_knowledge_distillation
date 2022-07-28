@@ -119,7 +119,7 @@ class Trainer:
 
             if self.kd:
                 loss_pc = 0
-                yt_hat = self.teacher.predict(x, training=False)
+                yt_hat = self.teacher.predict(x)
                 
                 for y_t, y_s in zip(yt_hat[:-1], y_hat[:-1]):
                     loss_pc += pixel_correlation_loss(y_t, y_s)
