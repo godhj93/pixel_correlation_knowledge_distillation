@@ -6,14 +6,14 @@ from utils.data import data_loader
 from tensorflow.keras.optimizers import Adam
 import copy
 from datetime import datetime
-
+from utils.loss import pixel_correlation_loss
 class Trainer:
     '''
     Train a Neural Network
     Author: H.J Shin
     Date: 2022.05.02
     '''
-    def __init__(self, model, dataset, epochs, batch_size, size, name='MODEL', DEBUG=False):
+    def __init__(self, model, kd, dataset, epochs, batch_size, size, name='MODEL', DEBUG=False):
         '''
         model: model for training.
         dataset: cifar10 or cifar100.
@@ -21,6 +21,14 @@ class Trainer:
         batch_size: positive int
         '''
         super(Trainer, self).__init__()
+
+        self.kd = kd
+        if self.kd:
+            from utils.networks.Baseline_DenseNet import DenseNet
+            self.teacher = DenseNet().model(input_shape=(size,size,3))
+            self.teacher.load_weights('./ckpt/2022-07-28/MODEL_22-44-11/') # Acc: 8665
+            print(self.teacher.summary())
+            print("Teacher has been loaded!")
 
         self.name = name
         self.batch_size = batch_size
@@ -69,7 +77,7 @@ class Trainer:
             
             train_bar = self.progress_bar('train')
             for x,y in train_bar:
-                self.train_step(x,y)
+                self.train_step(x,y, kd=self.kd)
                 train_bar.set_description(f"Loss: {self.train_loss.result().numpy():.4f}, Acc: {self.train_accuracy.result().numpy():.4f}, Learning Rate: {self._optimizer._decayed_lr('float32').numpy()}")
             with self.train_summary_writer.as_default():
                 tf.summary.scalar('loss', self.train_loss.result(), step=e)
@@ -102,13 +110,28 @@ class Trainer:
         self.test_accuracy.reset_states()
 
     @tf.function
-    def train_step(self, x,y):
+    def train_step(self, kd, x,y):
               
         with tf.GradientTape() as tape:
+                
             y_hat = self._model(x, training=True)
             loss = self.CrossEntropy(y,y_hat)
+
+            if kd:
+                loss_pc = 0
+                yt_hat = self.teacher.predict(x, training=False)
+                
+                for y_t, y_s in zip(yt_hat[:-1], y_hat[:-1]):
+                    loss_pc += pixel_correlation_loss(y_t, y_s)
+
+        if kd:
+            lamb = 10
+            loss_total = loss + lamb*loss_pc
+            grads = tape.gradient(loss_total, self._model.trainable_variables)    
         
-        grads = tape.gradient(loss, self._model.trainable_variables)
+        else:
+            grads = tape.gradient(loss, self._model.trainable_variables)
+
         self._optimizer.apply_gradients(zip(grads, self._model.trainable_variables))
         
         self.train_accuracy.update_state(y, y_hat)

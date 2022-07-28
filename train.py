@@ -13,6 +13,9 @@ parser.add_argument("--bs", default=32, type=int,help="Batch Size")
 parser.add_argument("--data", default='cifar10')
 parser.add_argument("--size", default=32, type=int, help="data size")
 parser.add_argument("--name", default='MODEL')
+parser.add_argument("--kd", help='Knowledge Distillation -> bool')
+
+
 args = parser.parse_args()
 
 def main():
@@ -26,7 +29,7 @@ def main():
     model = DenseNet(arch='bdn-28',classes=classes).model(input_shape=(args.size,args.size,3))
     #model = MobileNetv1(classes=classes).model(input_shape=(args.size, args.size, 3))
     print(model.summary())
-    trainer = Trainer(model, dataset=args.data, epochs=args.ep, batch_size=args.bs, size=args.size, name=args.name ,DEBUG=False)
+    trainer = Trainer(model, kd=args.kd, dataset=args.data, epochs=args.ep, batch_size=args.bs, size=args.size, name=args.name ,DEBUG=False)
     trainer.train()
     
     
